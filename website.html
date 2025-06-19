@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Should You Hire a New Mechanic?</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --dm-blue: #00529C;
+            --dm-orange: #f7941e;
+            --dm-dark-gray: #333333;
+            --dm-light-gray: #f8f9fa;
+            --dm-bg: #f2f5f8; /* A softer background */
+            --dm-green: #28a745;
+            --dm-red: #dc3545;
+        }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--dm-bg);
+            color: var(--dm-dark-gray);
+        }
+        
+        .card {
+            background-color: white;
+            border-radius: 0.75rem; /* 12px */
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+            padding: 1.5rem;
+        }
+
+        .result-card-animation {
+            position: relative; overflow: hidden;
+        }
+        .result-card-animation::before {
+            content: ''; position: absolute; top: 0; left: -150%; width: 100%; height: 100%;
+            background: linear-gradient(110deg, rgba(255, 255, 255, 0) 40%, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0) 60%);
+            transform: skewX(-25deg); animation: mesmerize 7s linear infinite;
+        }
+        @keyframes mesmerize {
+            0% { left: -150%; } 100% { left: 150%; }
+        }
+
+        .recommendation {
+            border-left-width: 4px; padding: 1rem 1.5rem; border-radius: 0.375rem;
+        }
+        .rec-positive { background-color: #f0fff4; border-color: var(--dm-green); color: #1e4620; }
+        .rec-caution { background-color: #fffbeb; border-color: var(--dm-orange); color: #78350f; }
+        .rec-negative { background-color: #fef2f2; border-color: var(--dm-red); color: #991b1b; }
+
+        /* Custom Slider with Fill Effect */
+        input[type=range] {
+            -webkit-appearance: none; appearance: none; width: 100%; height: 10px;
+            background: #e5e7eb; border-radius: 5px; outline: none; transition: background 0.3s ease-in-out;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none; appearance: none; width: 24px; height: 24px;
+            background: white; border-radius: 50%; cursor: pointer; border: 3px solid var(--dm-orange);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2); transition: transform 0.2s ease;
+        }
+        input[type=range]:hover::-webkit-slider-thumb { transform: scale(1.1); }
+        
+        /* Animated Counter Styles */
+        .scrolling-counter-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-variant-numeric: tabular-nums;
+        }
+        .digit-reel-container {
+            overflow: hidden;
+            height: 48px; /* Based on font size */
+        }
+        .digit-reel {
+            transition: transform 0.8s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+        }
+        .digit-reel span {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 48px; /* Should match container height */
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <div class="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
+        <!-- Header -->
+        <div class="text-center mb-12">
+            <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight" style="color: var(--dm-blue);">Should You Hire a New Mechanic?</h1>
+            <p class="mt-3 max-w-3xl mx-auto text-lg md:text-xl text-gray-600">Get a clear, data-driven answer in minutes. Made for repair shops and fleet managers.</p>
+        </div>
+        
+        <div class="grid grid-cols-1 lg:grid-cols-5 lg:gap-8 xl:gap-12">
+            <!-- Left Side: Inputs -->
+            <div class="lg:col-span-3 space-y-6">
+                 <div class="card">
+                    <h2 class="text-2xl font-bold border-b-2 border-gray-100 pb-4 mb-6" style="color: var(--dm-dark-gray);">Your Business Snapshot</h2>
+                    <div class="space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="revenue" class="block text-sm font-medium text-gray-700">Business Revenue</label>
+                                <div class="mt-1 flex rounded-md shadow-sm">
+                                    <span class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 sm:text-sm currency-symbol">$</span>
+                                    <input type="number" id="revenue" class="flex-1 min-w-0 block w-full px-3 py-2 rounded-none border-gray-300 focus:ring-orange-500 focus:border-orange-500" value="83000" placeholder="e.g., 83000">
+                                    <select id="revenuePeriod" class="inline-flex items-center px-3 rounded-r-md border border-l-0 border-gray-300 bg-gray-50 text-gray-500 sm:text-sm focus:ring-orange-500 focus:border-orange-500">
+                                        <option value="weekly">per Week</option>
+                                        <option value="monthly" selected>per Month</option>
+                                        <option value="annually">per Year</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div>
+                                <label for="weeklyVehicles" class="block text-sm font-medium text-gray-700">Avg. Vehicles Serviced Weekly</label>
+                                <input type="number" id="weeklyVehicles" class="mt-1 focus:ring-orange-500 focus:border-orange-500 block w-full sm:text-sm border-gray-300 rounded-md" value="20">
+                            </div>
+                        </div>
+                        <div>
+                           <label for="profitMargin" class="block text-sm font-medium text-gray-700">Current Profit Margin</label>
+                            <div class="mt-2 flex items-center space-x-4">
+                               <input type="range" id="profitMargin" min="0" max="100" value="25" class="w-full">
+                               <input type="number" id="profitMarginInput" min="0" max="100" value="25" class="font-bold text-lg w-20 text-center rounded-md py-1 border-gray-300 focus:ring-orange-500 focus:border-orange-500" style="color:var(--dm-blue); background-color:#eef6ff;">
+                            </div>
+                        </div>
+                        <div class="bg-slate-50 p-4 rounded-lg border border-slate-200">
+                            <h4 class="text-sm font-medium text-slate-600 flex items-center">
+                                Calculated Avg. Revenue Per Job
+                            </h4>
+                            <p id="avgJobValue" class="text-2xl font-bold mt-1" style="color: var(--dm-dark-gray);">-</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2 class="text-2xl font-bold border-b-2 border-gray-100 pb-4 mb-6" style="color: var(--dm-dark-gray);">The New Hire</h2>
+                     <div class="space-y-6">
+                        <div>
+                            <label for="mechanicCost" class="block text-sm font-medium text-gray-700">Mechanic's Cost</label>
+                            <div class="mt-1 flex rounded-md shadow-sm">
+                                <span class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 sm:text-sm currency-symbol">$</span>
+                                <input type="number" id="mechanicCost" class="flex-1 min-w-0 block w-full px-3 py-2 rounded-none border-gray-300 focus:ring-orange-500 focus:border-orange-500" value="60640" placeholder="e.g., 60640">
+                                <select id="costPeriod" class="inline-flex items-center px-3 rounded-r-md border border-l-0 border-gray-300 bg-gray-50 text-gray-500 sm:text-sm focus:ring-orange-500 focus:border-orange-500">
+                                    <option value="hourly">per Hour</option>
+                                    <option value="monthly">per Month</option>
+                                    <option value="annually" selected>per Year</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Additional Vehicles Per Week with New Hire</label>
+                            <div class="flex items-center justify-center space-x-4">
+                                <button id="decrementVehicles" class="w-12 h-12 rounded-full font-bold text-2xl transition-all transform active:scale-90 hover:bg-orange-100" style="background-color: #eef6ff; color: var(--dm-blue);">-</button>
+                                <div id="extraVehiclesCounter" class="scrolling-counter-container"></div>
+                                <button id="incrementVehicles" class="w-12 h-12 rounded-full font-bold text-2xl transition-all transform active:scale-90 hover:opacity-90" style="background-color: var(--dm-orange); color: white;">+</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                 <div class="card">
+                    <h2 class="text-2xl font-bold border-b-2 border-gray-100 pb-4 mb-6" style="color: var(--dm-dark-gray);">Options</h2>
+                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                        <div>
+                            <label for="currency" class="block text-sm font-medium text-gray-700">Currency</label>
+                            <select id="currency" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm rounded-md">
+                                <option value="USD" selected>🇺🇸 USD</option>
+                                <option value="CAD">🇨🇦 CAD</option>
+                            </select>
+                        </div>
+                        <div class="relative flex items-center pt-5">
+                            <input id="isFleet" type="checkbox" class="h-5 w-5 rounded focus:ring-offset-0" style="color: var(--dm-blue); border-color: #a0aec0;">
+                            <div class="ml-3 text-sm">
+                                <label for="isFleet" class="font-medium">I manage a fleet</label>
+                                <p class="text-gray-500">Enable downtime savings.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="fleet-section" class="card hidden">
+                    <h2 class="text-2xl font-bold border-b-2 border-gray-100 pb-4 mb-6" style="color: var(--dm-dark-gray);">Fleet Downtime Savings</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-6">
+                        <div>
+                            <label for="downtimeCost" class="block text-sm font-medium text-gray-700">Avg. Cost Per Day of Downtime</label>
+                            <div class="mt-1 relative rounded-md shadow-sm">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><span class="text-gray-500 sm:text-sm currency-symbol">$</span></div>
+                                <input type="number" id="downtimeCost" class="focus:ring-orange-500 focus:border-orange-500 block w-full pl-7 sm:text-sm border-gray-300 rounded-md" value="500">
+                            </div>
+                        </div>
+                        <div>
+                            <label for="downtimeReduction" class="block text-sm font-medium text-gray-700">Downtime Reduction Per Week (Days)</label>
+                            <input type="number" id="downtimeReduction" class="mt-1 focus:ring-orange-500 focus:border-orange-500 block w-full sm:text-sm border-gray-300 rounded-md" value="2">
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Right Side: Results -->
+            <div id="results-container" class="lg:col-span-2 mt-8 lg:mt-0">
+                <div class="sticky top-8 space-y-6">
+                    <div class="card">
+                        <h2 class="text-3xl font-extrabold border-b-2 border-gray-100 pb-4 mb-6" style="color: var(--dm-blue);">Your Results</h2>
+                        <div class="space-y-4">
+                            <div class="text-center p-5 rounded-lg result-card-animation" style="background-color: var(--dm-dark-gray);">
+                                <h3 class="text-base font-semibold tracking-wide uppercase" style="color: var(--dm-orange);">Monthly Profit Change</h3>
+                                <p id="monthlyGain" class="mt-1 text-5xl font-extrabold">-</p>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="p-4 rounded-lg bg-gray-50 text-center result-card-animation">
+                                    <h3 class="text-sm font-semibold text-gray-500 tracking-wide uppercase">Annual ROI</h3>
+                                    <p id="roi" class="mt-2 text-4xl font-bold" style="color: var(--dm-dark-gray);">-</p>
+                                </div>
+                                <div class="p-4 rounded-lg bg-gray-50 text-center result-card-animation">
+                                    <h3 class="text-sm font-semibold text-gray-500 tracking-wide uppercase">Breakeven Time</h3>
+                                    <p id="breakeven" class="mt-2 text-4xl font-bold" style="color: var(--dm-dark-gray);">-</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-8">
+                            <h3 class="text-xl font-bold" style="color: var(--dm-dark-gray);">The Bottom Line</h3>
+                            <div id="recommendation" class="mt-3">
+                                <p class="text-gray-600">Adjust the inputs on the left to see your personalized analysis.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-8">
+                             <h3 class="text-xl font-bold" style="color: var(--dm-dark-gray);">Projected Gain Over 24 Months</h3>
+                            <div class="h-64 w-full mt-3">
+                                <canvas id="profitChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- DOM ELEMENT SELECTORS & STATE ---
+        const currencySelect = document.getElementById('currency');
+        const currencySymbols = document.querySelectorAll('.currency-symbol');
+        const isFleetCheckbox = document.getElementById('isFleet');
+        const fleetSection = document.getElementById('fleet-section');
+        
+        const revenueInput = document.getElementById('revenue');
+        const revenuePeriodSelect = document.getElementById('revenuePeriod');
+        const weeklyVehiclesInput = document.getElementById('weeklyVehicles');
+        const profitMarginSlider = document.getElementById('profitMargin');
+        const profitMarginInput = document.getElementById('profitMarginInput');
+        const avgJobValueEl = document.getElementById('avgJobValue');
+        
+        const mechanicCostInput = document.getElementById('mechanicCost');
+        const costPeriodSelect = document.getElementById('costPeriod');
+        
+        const decrementVehiclesBtn = document.getElementById('decrementVehicles');
+        const incrementVehiclesBtn = document.getElementById('incrementVehicles');
+        const extraVehiclesCounter = document.getElementById('extraVehiclesCounter');
+        let extraVehiclesCount = 15;
+        
+        const downtimeCostInput = document.getElementById('downtimeCost');
+        const downtimeReductionInput = document.getElementById('downtimeReduction');
+
+        const monthlyGainEl = document.getElementById('monthlyGain');
+        const roiEl = document.getElementById('roi');
+        const breakevenEl = document.getElementById('breakeven');
+        const recommendationEl = document.getElementById('recommendation');
+        
+        let profitChart;
+
+        // --- ANIMATED COUNTER LOGIC ---
+        function createCounter(initialValue) {
+            extraVehiclesCounter.innerHTML = ''; // Clear previous
+            const valueStr = String(initialValue).padStart(2, '0');
+            for (let i = 0; i < valueStr.length; i++) {
+                const reelContainer = document.createElement('div');
+                reelContainer.className = 'digit-reel-container';
+                const reel = document.createElement('div');
+                reel.className = 'digit-reel';
+                for (let j = 0; j < 10; j++) {
+                    const digit = document.createElement('span');
+                    digit.textContent = j;
+                    reel.appendChild(digit);
+                }
+                reelContainer.appendChild(reel);
+                extraVehiclesCounter.appendChild(reelContainer);
+            }
+            updateCounter(initialValue, true);
+        }
+
+        function updateCounter(value, instant = false) {
+            const valueStr = String(value).padStart(2, '0');
+            const reels = extraVehiclesCounter.querySelectorAll('.digit-reel');
+            const digitHeight = 48; // Must match CSS
+            if (instant) {
+                reels.forEach(r => r.style.transition = 'none');
+            } else {
+                reels.forEach(r => r.style.transition = 'transform 0.8s cubic-bezier(0.68, -0.55, 0.27, 1.55)');
+            }
+            for (let i = 0; i < reels.length; i++) {
+                const digit = parseInt(valueStr[i], 10);
+                const offset = -digit * digitHeight;
+                reels[i].style.transform = `translateY(${offset}px)`;
+            }
+             if (instant) {
+                setTimeout(() => reels.forEach(r => r.style.transition = ''), 50);
+            }
+        }
+        
+        // --- DYNAMIC VALUE CONVERSION ---
+        function handlePeriodChange(valueInput, periodSelect) {
+            const currentValue = parseFloat(valueInput.value) || 0;
+            const newPeriod = periodSelect.value;
+            const oldPeriod = periodSelect.dataset.oldPeriod || newPeriod;
+            
+            if (newPeriod === oldPeriod) return;
+
+            let annualValue = 0;
+            if (oldPeriod === 'weekly') annualValue = currentValue * 52;
+            else if (oldPeriod === 'monthly') annualValue = currentValue * 12;
+            else if (oldPeriod === 'hourly') annualValue = currentValue * 2080;
+            else annualValue = currentValue;
+
+            let newValue = 0;
+            if (newPeriod === 'weekly') newValue = annualValue / 52;
+            else if (newPeriod === 'monthly') newValue = annualValue / 12;
+            else if (newPeriod === 'hourly') newValue = annualValue / 2080;
+            else newValue = annualValue;
+
+            valueInput.value = Math.round(newValue);
+            periodSelect.dataset.oldPeriod = newPeriod;
+        }
+
+        // --- EVENT LISTENERS ---
+        const allInputs = [currencySelect, isFleetCheckbox, revenueInput, weeklyVehiclesInput, profitMarginSlider, profitMarginInput, mechanicCostInput, downtimeCostInput, downtimeReductionInput];
+        allInputs.forEach(input => {
+            input.addEventListener('input', calculateAndDisplay);
+            input.addEventListener('change', calculateAndDisplay); 
+        });
+        
+        revenuePeriodSelect.addEventListener('focus', (e) => { e.target.dataset.oldPeriod = e.target.value; });
+        revenuePeriodSelect.addEventListener('change', () => handlePeriodChange(revenueInput, revenuePeriodSelect));
+        costPeriodSelect.addEventListener('focus', (e) => { e.target.dataset.oldPeriod = e.target.value; });
+        costPeriodSelect.addEventListener('change', () => handlePeriodChange(mechanicCostInput, costPeriodSelect));
+        
+        profitMarginSlider.addEventListener('input', (e) => {
+            profitMarginInput.value = e.target.value;
+            updateSliderFill(e.target);
+        });
+        profitMarginInput.addEventListener('input', (e) => {
+            let val = parseInt(e.target.value, 10);
+            if (isNaN(val)) val = 0;
+            if (val > 100) val = 100;
+            if (val < 0) val = 0;
+            e.target.value = val;
+            profitMarginSlider.value = val;
+            updateSliderFill(profitMarginSlider);
+        });
+        
+        function updateSliderFill(slider) {
+            const percentage = (slider.value - slider.min) / (slider.max - slider.min) * 100;
+            slider.style.background = `linear-gradient(to right, var(--dm-orange) ${percentage}%, #e5e7eb ${percentage}%)`;
+        }
+
+        decrementVehiclesBtn.addEventListener('click', () => {
+            if (extraVehiclesCount > 0) {
+                extraVehiclesCount--;
+                updateCounter(extraVehiclesCount);
+                calculateAndDisplay();
+            }
+        });
+        incrementVehiclesBtn.addEventListener('click', () => {
+            extraVehiclesCount++;
+            updateCounter(extraVehiclesCount);
+            calculateAndDisplay();
+        });
+
+        isFleetCheckbox.addEventListener('change', () => fleetSection.classList.toggle('hidden'));
+        currencySelect.addEventListener('change', () => {
+            const symbol = currencySelect.value === 'USD' ? '$' : '$';
+            currencySymbols.forEach(s => s.textContent = symbol);
+            calculateAndDisplay();
+        });
+
+        // --- CHART INITIALIZATION ---
+        function initializeChart() {
+            const ctx = document.getElementById('profitChart').getContext('2d');
+            Chart.defaults.font.family = "'Poppins', sans-serif";
+            profitChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: Array.from({ length: 25 }, (_, i) => `M${i}`),
+                    datasets: [{
+                        label: 'Cumulative Gain', data: [],
+                        borderColor: 'var(--dm-blue)', backgroundColor: 'rgba(0, 82, 156, 0.1)',
+                        fill: true, tension: 0.4,
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    animation: { duration: 1000, easing: 'easeOutQuart' },
+                    scales: {
+                        y: { ticks: { callback: value => formatCurrency(value, currencySelect.value) } },
+                        x: { grid: { display: false } }
+                    },
+                    plugins: { legend: { display: false }, tooltip: {
+                        mode: 'index', intersect: false, backgroundColor: 'var(--dm-dark-gray)',
+                        titleFont: { weight: 'bold' }, bodyFont: { size: 14 }, padding: 12, cornerRadius: 6,
+                        callbacks: { label: (c) => `${c.dataset.label}: ${formatCurrency(c.parsed.y, currencySelect.value, true)}` }
+                    }},
+                    interaction: { mode: 'index', intersect: false }
+                }
+            });
+        }
+        
+        // --- CALCULATION LOGIC ---
+        function calculate() {
+            const revenueVal = parseFloat(revenueInput.value) || 0;
+            const revenuePeriod = revenuePeriodSelect.value;
+            let annualRevenue = 0;
+            if (revenuePeriod === 'weekly') annualRevenue = revenueVal * 52;
+            else if (revenuePeriod === 'monthly') annualRevenue = revenueVal * 12;
+            else annualRevenue = revenueVal;
+
+            const costVal = parseFloat(mechanicCostInput.value) || 0;
+            const costPeriod = costPeriodSelect.value;
+            let annualMechanicCost = 0;
+            if (costPeriod === 'hourly') annualMechanicCost = costVal * 2080;
+            else if (costPeriod === 'monthly') annualMechanicCost = costVal * 12;
+            else annualMechanicCost = costVal;
+
+            const vehiclesPerWeek = parseFloat(weeklyVehiclesInput.value) || 0;
+            const margin = parseFloat(profitMarginInput.value) / 100 || 0;
+            const extraVehiclesPerWeek = extraVehiclesCount;
+            
+            const vehiclesPerYear = vehiclesPerWeek > 0 ? vehiclesPerWeek * 52 : 0;
+            const avgRevenuePerVehicle = vehiclesPerYear > 0 ? annualRevenue / vehiclesPerYear : 0;
+            
+            const extraAnnualRevenue = avgRevenuePerVehicle * (extraVehiclesPerWeek * 52);
+            const extraProfitFromRepairs = extraAnnualRevenue * margin;
+            
+            let downtimeSavings = 0;
+            if (isFleetCheckbox.checked) {
+                const dailyDowntimeCost = parseFloat(downtimeCostInput.value) || 0;
+                const weeklyDowntimeReduction = parseFloat(downtimeReductionInput.value) || 0;
+                downtimeSavings = dailyDowntimeCost * weeklyDowntimeReduction * 52;
+            }
+            
+            const totalAnnualBenefit = extraProfitFromRepairs + downtimeSavings;
+            const netAnnualGain = totalAnnualBenefit - annualMechanicCost;
+            const monthlyGain = netAnnualGain / 12;
+            const roi = annualMechanicCost > 0 ? (netAnnualGain / annualMechanicCost) * 100 : Infinity;
+            const breakevenMonths = (netAnnualGain > 0 && annualMechanicCost > 0) ? annualMechanicCost / monthlyGain : null;
+
+            return { avgRevenuePerVehicle, margin, annualMechanicCost, netAnnualGain, monthlyGain, roi, breakevenMonths };
+        }
+        
+        // --- UI UPDATE & FORMATTING ---
+        function formatCurrency(value, currency = 'USD', withCents = false) {
+            return new Intl.NumberFormat('en-US', { 
+                style: 'currency', currency, 
+                minimumFractionDigits: withCents ? 2 : 0, 
+                maximumFractionDigits: withCents ? 2 : 0 
+            }).format(value);
+        }
+
+        function calculateAndDisplay() {
+            const results = calculate();
+            const currency = currencySelect.value;
+
+            avgJobValueEl.textContent = formatCurrency(results.avgRevenuePerVehicle, currency);
+
+            monthlyGainEl.textContent = `${results.monthlyGain >= 0 ? '+' : ''}${formatCurrency(results.monthlyGain, currency, true)}`;
+            monthlyGainEl.style.color = results.monthlyGain >= 0 ? 'var(--dm-green)' : 'var(--dm-red)';
+            
+            roiEl.textContent = isFinite(results.roi) ? `${results.roi.toFixed(1)}%` : '∞';
+            roiEl.className = `mt-2 text-4xl font-bold ${results.roi >= 0 ? 'positive' : 'negative'}`;
+            
+            if (results.breakevenMonths !== null) {
+                breakevenEl.textContent = results.breakevenMonths > 24 ? `${(results.breakevenMonths/12).toFixed(1)} yrs` : `${results.breakevenMonths.toFixed(1)} mos`;
+            } else {
+                breakevenEl.textContent = 'N/A';
+            }
+            breakevenEl.classList.toggle('negative', results.breakevenMonths === null && results.netAnnualGain < 0);
+
+            updateRecommendation(results, currency);
+            updateChartData(results.monthlyGain);
+        }
+
+        function updateRecommendation({ roi, breakevenMonths, monthlyGain, margin, avgRevenuePerVehicle }, currency) {
+            let title, body, finalClasses;
+
+            if (roi > 35 && breakevenMonths !== null && breakevenMonths <= 12) {
+                finalClasses = 'recommendation rec-positive';
+                title = 'Go For It: Strong Case for Hiring';
+                body = `The technician shortage is real, and you're in a prime position to expand while others can't. This hire pays for itself in just <strong>~${breakevenMonths.toFixed(0)} months</strong> and then adds <strong>${formatCurrency(monthlyGain, currency)}/month</strong> straight to your bottom line. Capturing this opportunity now could be a major competitive advantage.`;
+            } else if (roi > 10) {
+                 finalClasses = 'recommendation rec-caution';
+                title = 'Profitable, But Let’s Make it a Sure Thing';
+                body = `The numbers point to a solid monthly gain of <strong>${formatCurrency(monthlyGain, currency)}</strong>. To turn this good decision into a great one, what's the one thing you can do to get your profit margin from <strong>${(margin * 100).toFixed(0)}%</strong> to over 30%? A small bump in your labor rate or a better deal on parts could significantly shorten your breakeven time and boost your ROI.`;
+            } else if (roi > -15) {
+                 finalClasses = 'recommendation rec-caution';
+                title = 'Caution: Don’t Hire to Fix a Profit Problem';
+                body = `This is a risky hire. Adding payroll won't solve an underlying issue. Your average revenue per job is <strong>${formatCurrency(avgRevenuePerVehicle, currency)}</strong>. Before you even think about hiring, focus on increasing this number. Can you add a high-margin service like DPF cleaning or diagnostics? A new tech should scale your success, not mask a weakness.`;
+            } else {
+                finalClasses = 'recommendation rec-negative';
+                title = 'Hold Off. The Risk is Too High.';
+                body = `With a projected loss of <strong>${formatCurrency(Math.abs(monthlyGain), currency)}/month</strong>, hiring now would drain your cash flow. The industry is tough, and adding payroll without a clear return is a recipe for stress. Focus on the fundamentals: get your profit margin over 25% and ensure every job is as profitable as possible before revisiting this decision.`;
+            }
+
+            recommendationEl.className = finalClasses;
+            recommendationEl.innerHTML = `<h4 class="font-bold text-lg">${title}</h4><p class="mt-2 text-sm leading-relaxed">${body}</p>`;
+        }
+        
+        function updateChartData(monthlyGain) {
+            if (profitChart) {
+                profitChart.data.datasets[0].data = Array.from({ length: 25 }, (_, i) => monthlyGain * i);
+                profitChart.update();
+            }
+        }
+
+        // --- INITIALIZATION ---
+        window.onload = () => {
+            initializeChart();
+            createCounter(extraVehiclesCount);
+            currencySymbols.forEach(s => s.textContent = '$');
+            updateSliderFill(profitMarginSlider);
+            calculateAndDisplay();
+        };
+    </script>
+</body>
+</html>
